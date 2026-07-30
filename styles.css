@@ -27,17 +27,18 @@ header { background: var(--bmm-black); color: white; border-bottom: 4px solid va
 }
 
 .logo-img {
-  height: 46px;
+  height: 34px;
   width: auto;
+  max-width: 140px;
   display: block;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  object-fit: contain;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
 }
 
 .logo-link:hover .logo-img,
 .logo-link:focus .logo-img {
-  transform: scale(1.08) translateY(-2px);
-  filter: drop-shadow(0 6px 18px rgba(204, 0, 0, 0.65)) brightness(1.15);
+  transform: scale(1.08) translateY(-1px);
+  filter: drop-shadow(0 4px 12px rgba(204, 0, 0, 0.5));
 }
 nav ul { display: flex; list-style: none; gap: 20px; font-size: 14px; font-weight: bold; text-transform: uppercase; }
 nav a { color: #fff; }
