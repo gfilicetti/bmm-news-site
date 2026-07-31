@@ -1,4 +1,6 @@
-# News Web Application
+# BMM News Site
+
+**BMM - The Most Trusted Brand in News**
 
 A fast, responsive, containerized static news website showcasing breaking news, world headlines, and featured articles. The application is served using Nginx and optimized for deployment on **Google Cloud Run**.
 
