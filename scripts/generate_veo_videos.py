@@ -113,6 +113,7 @@ def main():
                 aspect_ratio=config.get("aspect_ratio", "16:9"),
                 duration_seconds=config.get("duration_seconds", 8),
                 person_generation=config.get("person_generation", "allow_adult"),
+                generate_audio=config.get("generate_audio", True),
             )
 
             operation = client.models.generate_videos(

@@ -5,7 +5,8 @@ location: "us-central1"          # Google Cloud Region
 # Model Settings
 model: "veo-3.1-lite-generate-001"
 
-# Video Generation Parameters
+# Video & Audio Generation Parameters
+generate_audio: true             # Enable audio and voiceover generation (true/false)
 aspect_ratio: "16:9"             # Options: "16:9", "9:16", "1:1", "4:3"
 duration_seconds: 8              # Video duration in seconds (5 to 8)
 fps: 24                           # Frames per second
