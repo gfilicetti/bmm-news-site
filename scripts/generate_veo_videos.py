@@ -10,11 +10,20 @@ import sys
 import glob
 import time
 import yaml
+
+# Load .env file if available
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from google import genai
 from google.genai import types
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(SCRIPT_DIR, "parameters.yaml")
+
 
 def load_config():
     if not os.path.exists(CONFIG_PATH):
