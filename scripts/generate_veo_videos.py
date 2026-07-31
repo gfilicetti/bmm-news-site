@@ -91,10 +91,12 @@ def main():
                 person_generation=config.get("person_generation", "allow_adult"),
             )
             
-            # Trigger video generation job
+            # Trigger video generation job using latest SDK source parameter
             operation = client.models.generate_videos(
                 model=model_name,
-                prompt=prompt_text,
+                source=types.GenerateVideosSource(
+                    prompt=prompt_text,
+                ),
                 config=gen_config,
             )
             
