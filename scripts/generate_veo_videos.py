@@ -52,8 +52,23 @@ def main():
     print(f"Found {len(prompt_files)} prompt file(s) in {prompts_dir}")
     print(f"Output directory: {output_dir}\n")
     
-    # Initialize Google GenAI client
-    client = genai.Client()
+    # Initialize Google GenAI client using Application Default Credentials (ADC) via Vertex AI
+    use_vertex = config.get("vertexai", True)
+    project_id = config.get("project") or os.environ.get("GOOGLE_CLOUD_PROJECT") or "bmm-news-site"
+    location = config.get("location") or os.environ.get("GOOGLE_CLOUD_LOCATION") or "us-central1"
+
+    if use_vertex:
+        print(f"Initializing Google GenAI Client with Application Default Credentials (ADC)...")
+        print(f"    GCP Project: {project_id}")
+        print(f"    GCP Region:  {location}\n")
+        client = genai.Client(
+            vertexai=True,
+            project=project_id,
+            location=location,
+        )
+    else:
+        client = genai.Client()
+
     model_name = config.get("model", "veo-2.0-generate-001")
     
     for idx, prompt_file in enumerate(prompt_files, start=1):
