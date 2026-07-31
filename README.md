@@ -14,7 +14,7 @@ A fast, responsive, containerized static news website showcasing breaking news, 
 - [`videos/`](videos/) — Directory containing embedded article video reports (`video-1.mp4`, `video-10.mp4`, etc.).
 - [`scripts/`](scripts/) — Veo video generation utilities:
   - [`scripts/generate_veo_videos.py`](scripts/generate_veo_videos.py) — Video generator script.
-  - [`scripts/parameters.yaml`](scripts/parameters.yaml) — Model and GCP project/region parameters configuration.
+  - [`scripts/parameters.yaml.example`](scripts/parameters.yaml.example) — Parameters configuration template.
   - [`scripts/requirements.txt`](scripts/requirements.txt) — Python dependencies for the Veo video generator.
   - `scripts/prompts/` — Individual `.md` prompt files.
   - `scripts/output/` — Output folder for generated MP4 video files.
@@ -58,18 +58,24 @@ A fast, responsive, containerized static news website showcasing breaking news, 
 
 ### 2. Running Video Generation
 
-1. **Configure GCP Project & Region**:
-   Set your GCP `project` and `location` in [`scripts/parameters.yaml`](scripts/parameters.yaml):
+1. **Create Parameters File from Example Template**:
+   Copy [`scripts/parameters.yaml.example`](scripts/parameters.yaml.example) to `scripts/parameters.yaml` and enter your GCP Project ID:
+   ```bash
+   cp scripts/parameters.yaml.example scripts/parameters.yaml
+   ```
+
+2. **Configure GCP Project & Region**:
+   Set your GCP `project` and `location` in `scripts/parameters.yaml`:
    ```yaml
    project: "your-gcp-project-id"
    location: "us-central1"
    model: "veo-3.1-lite-generate-001"
    ```
 
-2. **Edit Prompts**:
+3. **Edit Prompts**:
    Store individual prompts as `.md` files in `scripts/prompts/` (e.g., `01_quantum_computing.md`).
 
-3. **Execute the Script**:
+4. **Execute the Script**:
    ```bash
    python3 scripts/generate_veo_videos.py
    ```

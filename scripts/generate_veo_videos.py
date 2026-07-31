@@ -16,11 +16,14 @@ from google.genai import types
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(SCRIPT_DIR, "parameters.yaml")
+EXAMPLE_CONFIG_PATH = os.path.join(SCRIPT_DIR, "parameters.yaml.example")
 
 
 def load_config():
     if not os.path.exists(CONFIG_PATH):
-        print(f"Error: Config file not found at {CONFIG_PATH}")
+        print(f"Error: Configuration file not found at {CONFIG_PATH}")
+        print(f"Please copy the example configuration file and set your GCP Project ID:")
+        print(f"    cp scripts/parameters.yaml.example scripts/parameters.yaml\n")
         sys.exit(1)
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)

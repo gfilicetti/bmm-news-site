@@ -217,7 +217,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Script output directory
+# Script output directory and local parameters config
 scripts/output/*
 !scripts/output/.gitkeep
+scripts/parameters.yaml
+
 
