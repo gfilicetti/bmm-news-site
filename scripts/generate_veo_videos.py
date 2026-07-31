@@ -110,11 +110,42 @@ def main():
             result = operation.result
             if result and result.generated_videos:
                 generated_video = result.generated_videos[0]
-                # Download/save video bytes
-                client.files.download(file=generated_video.video)
-                with open(out_path, "wb") as f_out:
-                    f_out.write(generated_video.video.video_bytes)
-                print(f"    SUCCESS: Saved video to {out_path}\n")
+                video_obj = generated_video.video
+                video_bytes = getattr(video_obj, "video_bytes", None)
+
+                # If video_bytes is not populated directly
+                if not video_bytes:
+                    if not use_vertex:
+                        # Gemini Developer API uses client.files.download
+                        client.files.download(file=video_obj)
+                        video_bytes = getattr(video_obj, "video_bytes", None)
+                    elif getattr(video_obj, "uri", None):
+                        uri = video_obj.uri
+                        if uri.startswith("http://") or uri.startswith("https://"):
+                            import urllib.request
+                            req = urllib.request.Request(uri)
+                            with urllib.request.urlopen(req) as response:
+                                video_bytes = response.read()
+                        elif uri.startswith("gs://"):
+                            try:
+                                from google.cloud import storage
+                                parts = uri[5:].split("/", 1)
+                                bucket_name, blob_name = parts[0], parts[1]
+                                storage_client = storage.Client(project=project_id)
+                                bucket = storage_client.bucket(bucket_name)
+                                blob = bucket.blob(blob_name)
+                                video_bytes = blob.download_as_bytes()
+                            except Exception as storage_err:
+                                print(f"    Note: Failed downloading GCS URI {uri}: {storage_err}")
+
+                if video_bytes:
+                    with open(out_path, "wb") as f_out:
+                        f_out.write(video_bytes)
+                    print(f"    SUCCESS: Saved video to {out_path}\n")
+                elif getattr(video_obj, "uri", None):
+                    print(f"    SUCCESS: Video generated at URI: {video_obj.uri}\n")
+                else:
+                    print(f"    ERROR: Could not retrieve video content for {filename}\n")
             else:
                 print(f"    ERROR: No generated video returned for {filename}\n")
                 
