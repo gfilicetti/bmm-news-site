@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Script output directory
+scripts/output/*
+!scripts/output/.gitkeep
+
