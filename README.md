@@ -12,8 +12,12 @@ A fast, responsive, containerized static news website showcasing breaking news, 
 - [`styles.css`](styles.css) — Custom stylesheet providing modern responsive layouts, article card grids, and news sidebars.
 - [`articles/`](articles/) — Individual article pages (`article-1.html` through `article-38.html`).
 - [`videos/`](videos/) — Directory containing embedded article video reports (`video-1.mp4`, `video-10.mp4`, etc.).
-- [`scripts/`](scripts/) — Veo video generation utilities, prompts (`scripts/prompts/`), parameters configuration ([`scripts/parameters.yaml`](scripts/parameters.yaml)), and generator script ([`scripts/generate_veo_videos.py`](scripts/generate_veo_videos.py)).
-- [`requirements.txt`](requirements.txt) — Python dependencies for the Veo video generator.
+- [`scripts/`](scripts/) — Veo video generation utilities:
+  - [`scripts/generate_veo_videos.py`](scripts/generate_veo_videos.py) — Video generator script.
+  - [`scripts/parameters.yaml`](scripts/parameters.yaml) — Model and video generation parameters configuration.
+  - [`scripts/requirements.txt`](scripts/requirements.txt) — Python dependencies for the Veo video generator.
+  - `scripts/prompts/` — Individual `.md` prompt files.
+  - `scripts/output/` — Output folder for generated MP4 video files.
 - [`.env.example`](.env.example) — Template for environment configuration.
 - [`Dockerfile`](Dockerfile) — Container build configuration based on `nginx:alpine` listening on port `8080`.
 - [`nginx.conf`](nginx.conf) — Custom Nginx server configuration route handler.
@@ -25,25 +29,36 @@ A fast, responsive, containerized static news website showcasing breaking news, 
 
 The site includes an automated Python script to generate 8-second video reports using **Google Veo** via Vertex AI and Application Default Credentials (ADC).
 
-### 1. Environment Setup
+### 1. Environment & Virtual Environment Setup
 
-1. **Create and Activate a Virtual Environment**:
+Before installing dependencies, always create and activate an isolated Python virtual environment:
+
+1. **Create Virtual Environment**:
    ```bash
    python3 -m venv .venv
-   source .venv/bin/activate
    ```
 
-2. **Install Dependencies**:
+2. **Activate Virtual Environment**:
+   * **macOS / Linux**:
+     ```bash
+     source .venv/bin/activate
+     ```
+   * **Windows (Command Prompt / PowerShell)**:
+     ```cmd
+     .venv\Scripts\activate
+     ```
+
+3. **Install Dependencies from `scripts/requirements.txt`**:
    ```bash
-   pip install -r requirements.txt
+   pip install -r scripts/requirements.txt
    ```
 
-3. **Authenticate with Google Cloud (Application Default Credentials)**:
+4. **Authenticate with Google Cloud (Application Default Credentials)**:
    ```bash
    gcloud auth application-default login
    ```
 
-4. *(Optional)* **Configure `.env`**:
+5. *(Optional)* **Configure `.env`**:
    Copy `.env.example` to `.env` if you wish to override project or region defaults:
    ```bash
    cp .env.example .env
