@@ -14,24 +14,22 @@ A fast, responsive, containerized static news website showcasing breaking news, 
 - [`videos/`](videos/) — Directory containing embedded article video reports (`video-1.mp4`, `video-10.mp4`, etc.).
 - [`scripts/`](scripts/) — Veo video generation utilities:
   - [`scripts/generate_veo_videos.py`](scripts/generate_veo_videos.py) — Video generator script.
-  - [`scripts/parameters.yaml`](scripts/parameters.yaml) — Model and video generation parameters configuration.
+  - [`scripts/parameters.yaml`](scripts/parameters.yaml) — Model and GCP project/region parameters configuration.
   - [`scripts/requirements.txt`](scripts/requirements.txt) — Python dependencies for the Veo video generator.
   - `scripts/prompts/` — Individual `.md` prompt files.
   - `scripts/output/` — Output folder for generated MP4 video files.
-- [`.env.example`](.env.example) — Template for environment configuration.
 - [`Dockerfile`](Dockerfile) — Container build configuration based on `nginx:alpine` listening on port `8080`.
 - [`nginx.conf`](nginx.conf) — Custom Nginx server configuration route handler.
 - [`.dockerignore`](.dockerignore) — Docker build context exclusion file.
 
 ---
 
-## 🎬 Generating Veo Video Reports
+## 🎬 Generating Veo Video Reports (Vertex AI ADC Only)
 
-The site includes an automated Python script to generate 8-second video reports using **Google Veo** via Vertex AI and Application Default Credentials (ADC).
+> [!IMPORTANT]
+> **Authentication Notice**: The video generation script exclusively supports **Google Cloud Vertex AI** using **Application Default Credentials (ADC)**. Gemini Developer API keys are not supported.
 
-### 1. Environment & Virtual Environment Setup
-
-Before installing dependencies, always create and activate an isolated Python virtual environment:
+### 1. Environment & Setup
 
 1. **Create Virtual Environment**:
    ```bash
@@ -43,34 +41,33 @@ Before installing dependencies, always create and activate an isolated Python vi
      ```bash
      source .venv/bin/activate
      ```
-   * **Windows (Command Prompt / PowerShell)**:
+   * **Windows**:
      ```cmd
      .venv\Scripts\activate
      ```
 
-3. **Install Dependencies from `scripts/requirements.txt`**:
+3. **Install Dependencies**:
    ```bash
    pip install -r scripts/requirements.txt
    ```
 
-4. **Authenticate with Google Cloud (Application Default Credentials)**:
+4. **Authenticate Application Default Credentials (ADC)**:
    ```bash
    gcloud auth application-default login
    ```
 
-5. *(Optional)* **Configure `.env`**:
-   Copy `.env.example` to `.env` if you wish to override project or region defaults:
-   ```bash
-   cp .env.example .env
-   ```
-
 ### 2. Running Video Generation
 
-1. **Configure Parameters**:
-   Edit parameters such as model, duration, aspect ratio, and region in [`scripts/parameters.yaml`](scripts/parameters.yaml).
+1. **Configure GCP Project & Region**:
+   Set your GCP `project` and `location` in [`scripts/parameters.yaml`](scripts/parameters.yaml):
+   ```yaml
+   project: "your-gcp-project-id"
+   location: "us-central1"
+   model: "veo-3.1-lite-generate-001"
+   ```
 
 2. **Edit Prompts**:
-   Individual prompts are stored as `.md` files in `scripts/prompts/` (e.g., `01_quantum_computing.md`).
+   Store individual prompts as `.md` files in `scripts/prompts/` (e.g., `01_quantum_computing.md`).
 
 3. **Execute the Script**:
    ```bash
@@ -78,7 +75,7 @@ Before installing dependencies, always create and activate an isolated Python vi
    ```
 
 4. **Output & Publishing**:
-   - Generated MP4 files will be saved in `scripts/output/` (e.g., `generated_video_01.mp4`).
+   - Generated MP4 files are saved in `scripts/output/` (e.g., `generated_video_01.mp4`).
    - Rename the files as needed (e.g. `video-1.mp4`) and move them into the [`videos/`](videos/) folder to serve them on the website.
 
 ---
