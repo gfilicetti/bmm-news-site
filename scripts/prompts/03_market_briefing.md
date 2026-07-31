@@ -1,0 +1,1 @@
+Fast-paced news visual of financial market tickers and green stock index graphs surging upward on glass screens in a modern trading floor. Reflections of glowing green charts and ticker symbols scroll across dark polished marble floors and skyscraper office windows at twilight. Dynamic camera push-in, sleek corporate news aesthetic.

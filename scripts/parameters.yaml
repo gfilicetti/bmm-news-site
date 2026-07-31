@@ -1,0 +1,16 @@
+# Veo Video Generation Configuration
+
+# Model settings
+model: "veo-2.0-generate-001"
+
+# Video generation parameters
+aspect_ratio: "16:9"       # Options: "16:9", "9:16", "1:1", "4:3"
+duration_seconds: 8        # Video duration in seconds (e.g. 5 to 8)
+fps: 24                     # Frames per second
+person_generation: "allow_adult"  # Options: "allow_adult", "dont_allow"
+aspect_mode: "cover"
+
+# File & directory settings
+prompts_dir: "scripts/prompts"
+output_dir: "scripts/output"
+output_prefix: "generated_video_"
