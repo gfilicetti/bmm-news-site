@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BMM - Breaking News, Latest World News and Headlines</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- Search Widget JavaScript bundle -->
+  <script src="https://cloud.google.com/ai/gen-app-builder/client?hl=en_US"></script>
 </head>
 <body>
+  <!-- Search widget element is not visible by default -->
+  <gen-search-widget
+    configId="dc71fa6a-4fd6-44a7-a7cb-f3069187e744"
+    triggerId="searchWidgetTrigger">
+  </gen-search-widget>
   <header>
     <div class="top-bar">
       <a href="index.html" class="logo-link"><img src="images/logo.png" alt="BMM News" class="logo-img"></a>
@@ -19,6 +26,7 @@
           <li><a href="science.html" class="">Science</a></li>
           <li><a href="health.html" class="">Health</a></li>
           <li><a href="opinion.html" class="">Opinion</a></li>
+          <li><a href="" placeholder="Search here" id="searchWidgetTrigger">Search</a></li>
         </ul>
       </nav>
     </div>
