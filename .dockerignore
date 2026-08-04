@@ -1,6 +1,14 @@
 .git
 .gitignore
+.env
+.env*
+scripts/
 Dockerfile
+docker-compose.yml
 README.md
 LICENSE
-
+*.md
+*.py
+*.yaml
+*.yml
+*.sh
