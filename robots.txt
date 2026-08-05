@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /videos/
+Disallow: /images/
+Disallow: /scripts/
+Disallow: /google8a2cfe4b4fe066cd.html
+
+Sitemap: https://bmm-news-site-159619652659.us-central1.run.app/sitemap.xml
