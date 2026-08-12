@@ -110,7 +110,7 @@
     aiAnswerEl.style.display = 'none';
     resultsEl.innerHTML = `
       <div class="bmm-search-placeholder">
-        <p>⏳ Querying Agent Search API...</p>
+        <p>⏳ Searching...</p>
       </div>
     `;
 
