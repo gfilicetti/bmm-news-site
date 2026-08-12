@@ -96,7 +96,7 @@ def api_search():
     except urllib.error.HTTPError as e:
         err_body = e.read().decode("utf-8")
         print(f"Discovery Engine HTTP Error {e.code}: {err_body}")
-        return jsonify({"error": f"Vertex AI Search Error {e.code}", "details": err_body}), e.code
+        return jsonify({"error": f"Agent Search Error {e.code}", "details": err_body}), e.code
     except Exception as e:
         print("Discovery Engine Request Error:", e)
         return jsonify({"error": str(e)}), 500

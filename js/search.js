@@ -1,6 +1,6 @@
 /**
  * BMM News - Custom Agent Search Widget & Modal (Option B)
- * Live Vertex AI Search API Integration (discoveryengine.googleapis.com)
+ * Live Agent Search API Integration (discoveryengine.googleapis.com)
  * Data Store ID: bmm-site-1_1785864019095
  * Project ID: bmm-news-site
  */
@@ -17,11 +17,11 @@
         <div class="bmm-search-container">
           <div class="bmm-search-header">
             <span class="bmm-search-icon">🔍</span>
-            <input type="text" id="bmm-search-input" class="bmm-search-input" placeholder="Search news via Vertex AI Agent Search..." autocomplete="off" spellcheck="false" focus>
+            <input type="text" id="bmm-search-input" class="bmm-search-input" placeholder="Search news via Agent Search..." autocomplete="off" spellcheck="false" focus>
             <button id="bmm-search-close" class="bmm-search-close" aria-label="Close Search">&times;</button>
           </div>
           <div class="bmm-search-subhead">
-            <span class="bmm-search-badge"><span class="pulse-dot"></span> Live Vertex AI Search API</span>
+            <span class="bmm-search-badge"><span class="pulse-dot"></span> Live Agent Search API</span>
             <span class="bmm-search-shortcut"><kbd>ESC</kbd> to exit</span>
           </div>
           <div id="bmm-search-body" class="bmm-search-body">
@@ -146,7 +146,7 @@
     aiAnswerEl.style.display = 'none';
     resultsEl.innerHTML = `
       <div class="bmm-search-placeholder">
-        <p>⏳ Querying Vertex AI Search (Discovery Engine API)...</p>
+        <p>⏳ Querying Agent Search (Discovery Engine API)...</p>
       </div>
     `;
 
@@ -167,7 +167,7 @@
       console.error('Agent Search Live API Error:', err);
       resultsEl.innerHTML = `
         <div class="bmm-no-results">
-          <p>⚠️ Failed to reach Vertex AI Search API (${escapeHTML(err.message)})</p>
+          <p>⚠️ Failed to reach Agent Search API (${escapeHTML(err.message)})</p>
         </div>
       `;
     }
@@ -177,14 +177,14 @@
     const aiAnswerEl = document.getElementById('bmm-ai-answer');
     const resultsEl = document.getElementById('bmm-search-results');
 
-    // 1. Render Real Vertex AI Generative Summary Answer
+    // 1. Render Real Agent Search Generative Summary Answer
     const summaryText = data.summary?.summaryText;
     if (summaryText) {
       aiAnswerEl.style.display = 'block';
       aiAnswerEl.innerHTML = `
         <div class="ai-header">
           <span class="ai-sparkle">✨</span>
-          <strong>Vertex AI Generative Search Summary</strong>
+          <strong>Agent Search Generative Summary</strong>
         </div>
         <p class="ai-text">${escapeHTML(summaryText)}</p>
       `;
@@ -197,7 +197,7 @@
     if (results.length === 0) {
       resultsEl.innerHTML = `
         <div class="bmm-no-results">
-          <p>No results returned from Vertex AI Search datastore for "<strong>${escapeHTML(query)}</strong>".</p>
+          <p>No results returned from Agent Search datastore for "<strong>${escapeHTML(query)}</strong>".</p>
         </div>
       `;
       return;
@@ -213,7 +213,7 @@
       return `
         <a href="${escapeHTML(link)}" class="bmm-result-card">
           <div class="result-header">
-            <span class="result-category">Vertex AI Search Match</span>
+            <span class="result-category">Agent Search Match</span>
           </div>
           <h4 class="result-title">${escapeHTML(title)}</h4>
           <p class="result-excerpt">${snippetText ? snippetText : 'Click to view story details.'}</p>
