@@ -40,8 +40,8 @@ header { background: var(--bmm-black); color: white; border-bottom: 4px solid va
   transform: scale(1.08) translateY(-1px);
   filter: drop-shadow(0 4px 12px rgba(204, 0, 0, 0.5));
 }
-nav ul { display: flex; list-style: none; gap: 20px; font-size: 14px; font-weight: bold; text-transform: uppercase; }
-nav a { color: #fff; }
+nav ul { display: flex; list-style: none; gap: 20px; font-size: 14px; font-weight: bold; text-transform: uppercase; align-items: center; }
+nav a { color: #fff; cursor: pointer; }
 nav a.active { color: var(--bmm-red); border-bottom: 2px solid var(--bmm-red); padding-bottom: 2px; }
 
 /* Section Banner Header */
@@ -85,7 +85,6 @@ nav a.active { color: var(--bmm-red); border-bottom: 2px solid var(--bmm-red); p
 
 /* Footer */
 footer { background: var(--bmm-black); color: #888; padding: 40px 24px; margin-top: 60px; font-size: 13px; text-align: center; border-top: 4px solid var(--bmm-red); }
-
 
 /* Video Component Styles */
 .video-player-wrapper {
@@ -153,4 +152,286 @@ footer { background: var(--bmm-black); color: #888; padding: 40px 24px; margin-t
   border-radius: 6px;
   margin: 16px 0 24px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ==========================================================================
+   BMM AGENT SEARCH MODAL & WIDGET (OPTION B) - DARK GLASSMORPHISM DESIGN
+   ========================================================================== */
+
+.bmm-search-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 80px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.bmm-search-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.bmm-search-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 12, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bmm-search-container {
+  position: relative;
+  width: 90%;
+  max-width: 720px;
+  background: #16161a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(204, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(-16px) scale(0.98);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #f0f0f5;
+}
+
+.bmm-search-modal.active .bmm-search-container {
+  transform: translateY(0) scale(1);
+}
+
+.bmm-search-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bmm-search-icon {
+  font-size: 18px;
+  margin-right: 12px;
+  opacity: 0.7;
+}
+
+.bmm-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 500;
+  font-family: var(--bmm-font);
+}
+
+.bmm-search-input::placeholder {
+  color: #727280;
+}
+
+.bmm-search-close {
+  background: transparent;
+  border: none;
+  color: #8a8a9e;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.15s ease;
+}
+
+.bmm-search-close:hover {
+  color: var(--bmm-red);
+}
+
+.bmm-search-subhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  background: #111114;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: #9292a0;
+}
+
+.bmm-search-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #ff3333;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--bmm-red);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--bmm-red);
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.bmm-search-shortcut kbd {
+  background: #25252e;
+  border: 1px solid #383845;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #d0d0e0;
+}
+
+.bmm-search-body {
+  max-height: 480px;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.bmm-search-placeholder {
+  text-align: center;
+  padding: 28px 12px;
+  color: #8a8a9e;
+  font-size: 14px;
+}
+
+.bmm-quick-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.bmm-tag-btn {
+  background: #22222c;
+  border: 1px solid #333342;
+  color: #e0e0f0;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bmm-tag-btn:hover {
+  background: var(--bmm-red);
+  border-color: var(--bmm-red);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.bmm-ai-answer {
+  background: linear-gradient(135deg, rgba(204, 0, 0, 0.12), rgba(30, 30, 40, 0.6));
+  border: 1px solid rgba(204, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.bmm-ai-answer .ai-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ff4d4d;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.bmm-ai-answer .ai-text {
+  font-size: 14px;
+  color: #e2e2ec;
+  line-height: 1.5;
+}
+
+.bmm-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bmm-result-card {
+  display: block;
+  background: #1e1e24;
+  border: 1px solid #2a2a34;
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.bmm-result-card:hover {
+  background: #262630;
+  border-color: var(--bmm-red);
+  text-decoration: none;
+  transform: translateX(3px);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.result-category {
+  color: #ff3333;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.result-id {
+  color: #727280;
+}
+
+.result-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+
+}
+
+.result-excerpt {
+  font-size: 13px;
+  color: #a0a0b2;
+  line-height: 1.4;
+}
+
+mark.highlight {
+  background: rgba(204, 0, 0, 0.35);
+  color: #ffffff;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.bmm-no-results {
+  text-align: center;
+  padding: 32px 16px;
+  color: #9090a2;
+}
+
+.bmm-no-results .suggestion {
+  display: block;
+  font-size: 12px;
+  margin-top: 8px;
+  color: #666678;
 }
