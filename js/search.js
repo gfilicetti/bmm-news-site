@@ -17,7 +17,7 @@
         <div class="bmm-search-container">
           <div class="bmm-search-header">
             <span class="bmm-search-icon">🔍</span>
-            <input type="text" id="bmm-search-input" class="bmm-search-input" placeholder="Search news via Agent Search..." autocomplete="off" spellcheck="false" focus>
+            <input type="text" id="bmm-search-input" class="bmm-search-input" placeholder="Search News..." autocomplete="off" spellcheck="false" focus>
             <button id="bmm-search-close" class="bmm-search-close" aria-label="Close Search">&times;</button>
           </div>
           <div class="bmm-search-subhead">
