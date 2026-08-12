@@ -21,22 +21,13 @@
             <button id="bmm-search-close" class="bmm-search-close" aria-label="Close Search">&times;</button>
           </div>
           <div class="bmm-search-subhead">
-            <span class="bmm-search-badge"><span class="pulse-dot"></span> Live Agent Search API</span>
+            <span class="bmm-search-badge"><span class="pulse-dot"></span>Live Search</span>
             <span class="bmm-search-shortcut"><kbd>ESC</kbd> to exit</span>
           </div>
           <div id="bmm-search-body" class="bmm-search-body">
             <div id="bmm-ai-answer" class="bmm-ai-answer" style="display:none;"></div>
             <div id="bmm-search-results" class="bmm-search-results">
-              <div class="bmm-search-placeholder">
-                <p>Type keywords to query <strong>discoveryengine.googleapis.com</strong> across your live datastore.</p>
-                <div class="bmm-quick-tags">
-                  <span class="bmm-tag-btn" data-query="Quantum Computing">Quantum</span>
-                  <span class="bmm-tag-btn" data-query="Fusion Energy">Fusion</span>
-                  <span class="bmm-tag-btn" data-query="Resilient Bridges">Bridges</span>
-                  <span class="bmm-tag-btn" data-query="Trans-Pacific Maritime">Maritime</span>
-                  <span class="bmm-tag-btn" data-query="Solid-State Batteries">Batteries</span>
-                </div>
-              </div>
+              <div class="bmm-search-placeholder"></div>
             </div>
           </div>
         </div>
@@ -86,15 +77,6 @@
         performLiveAgentSearch(query);
       }, 300);
     });
-
-    // Tag pills
-    modal.querySelectorAll('.bmm-tag-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tag = btn.getAttribute('data-query');
-        input.value = tag;
-        performLiveAgentSearch(tag);
-      });
-    });
   }
 
   function openModal() {
@@ -120,25 +102,7 @@
 
     if (!query || query.length === 0) {
       aiAnswerEl.style.display = 'none';
-      resultsEl.innerHTML = `
-        <div class="bmm-search-placeholder">
-          <p>Type keywords to query <strong>discoveryengine.googleapis.com</strong> across your live datastore.</p>
-          <div class="bmm-quick-tags">
-            <span class="bmm-tag-btn" data-query="Quantum Computing">Quantum</span>
-            <span class="bmm-tag-btn" data-query="Fusion Energy">Fusion</span>
-            <span class="bmm-tag-btn" data-query="Resilient Bridges">Bridges</span>
-            <span class="bmm-tag-btn" data-query="Trans-Pacific Maritime">Maritime</span>
-            <span class="bmm-tag-btn" data-query="Solid-State Batteries">Batteries</span>
-          </div>
-        </div>
-      `;
-      resultsEl.querySelectorAll('.bmm-tag-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const tag = btn.getAttribute('data-query');
-          document.getElementById('bmm-search-input').value = tag;
-          performLiveAgentSearch(tag);
-        });
-      });
+      resultsEl.innerHTML = '<div class="bmm-search-placeholder"></div>';
       return;
     }
 
@@ -146,7 +110,7 @@
     aiAnswerEl.style.display = 'none';
     resultsEl.innerHTML = `
       <div class="bmm-search-placeholder">
-        <p>⏳ Querying Agent Search (Discovery Engine API)...</p>
+        <p>⏳ Querying Agent Search API...</p>
       </div>
     `;
 
@@ -184,7 +148,7 @@
       aiAnswerEl.innerHTML = `
         <div class="ai-header">
           <span class="ai-sparkle">✨</span>
-          <strong>Agent Search Generative Summary</strong>
+          <strong>AI Summary</strong>
         </div>
         <p class="ai-text">${escapeHTML(summaryText)}</p>
       `;
@@ -197,7 +161,7 @@
     if (results.length === 0) {
       resultsEl.innerHTML = `
         <div class="bmm-no-results">
-          <p>No results returned from Agent Search datastore for "<strong>${escapeHTML(query)}</strong>".</p>
+          <p>No results found for "<strong>${escapeHTML(query)}</strong>".</p>
         </div>
       `;
       return;
