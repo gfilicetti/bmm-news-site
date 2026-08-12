@@ -1,0 +1,4 @@
+flask
+gunicorn
+google-auth
+requests
