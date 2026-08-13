@@ -221,9 +221,12 @@ __marimo__/
 scripts/output/*
 !scripts/output/.gitkeep
 scripts/parameters.yaml
+scripts/test_*.py
+scripts/temp_*.py
 
 # Session Context File
 session_context.md
+
 
 
 
