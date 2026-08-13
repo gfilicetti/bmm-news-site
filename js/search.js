@@ -21,7 +21,7 @@
             <button id="bmm-search-close" class="bmm-search-close" aria-label="Close Search">&times;</button>
           </div>
           <div class="bmm-search-subhead">
-            <span class="bmm-search-badge"><span class="pulse-dot"></span> Live Agent Search API</span>
+            <span class="bmm-search-badge"><span class="pulse-dot"></span>Live Search</span>
             <span class="bmm-search-shortcut"><kbd>ESC</kbd> to exit</span>
           </div>
           <div id="bmm-search-body" class="bmm-search-body">
@@ -159,7 +159,7 @@
       aiAnswerEl.innerHTML = `
         <div class="ai-header">
           <span class="ai-sparkle">✨</span>
-          <strong>Agent Search Generative Summary</strong>
+          <strong>AI Summary</strong>
         </div>
         <div class="ai-body">
           ${formattedParagraphs}
@@ -176,7 +176,7 @@
     if (results.length === 0) {
       resultsEl.innerHTML = `
         <div class="bmm-no-results">
-          <p>No results returned from Agent Search datastore for "<strong>${escapeHTML(query)}</strong>".</p>
+          <p>No results found for "<strong>${escapeHTML(query)}</strong>".</p>
         </div>
       `;
       return;
