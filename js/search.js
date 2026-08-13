@@ -17,11 +17,11 @@
         <div class="bmm-search-container">
           <div class="bmm-search-header">
             <span class="bmm-search-icon">🔍</span>
-            <input type="text" id="bmm-search-input" class="bmm-search-input" placeholder="Search News..." autocomplete="off" spellcheck="false" focus>
+            <input type="text" id="bmm-search-input" class="bmm-search-input" placeholder="Search news via Agent Search..." autocomplete="off" spellcheck="false" focus>
             <button id="bmm-search-close" class="bmm-search-close" aria-label="Close Search">&times;</button>
           </div>
           <div class="bmm-search-subhead">
-            <span class="bmm-search-badge"><span class="pulse-dot"></span>Live Search</span>
+            <span class="bmm-search-badge"><span class="pulse-dot"></span> Live Agent Search API</span>
             <span class="bmm-search-shortcut"><kbd>ESC</kbd> to exit</span>
           </div>
           <div id="bmm-search-body" class="bmm-search-body">
@@ -110,7 +110,7 @@
     aiAnswerEl.style.display = 'none';
     resultsEl.innerHTML = `
       <div class="bmm-search-placeholder">
-        <p>⏳ Searching...</p>
+        <p>⏳ Querying Agent Search API...</p>
       </div>
     `;
 
@@ -141,27 +141,42 @@
     const aiAnswerEl = document.getElementById('bmm-ai-answer');
     const resultsEl = document.getElementById('bmm-search-results');
 
-    // 1. Render Real Agent Search Generative Summary Answer
-    const summaryText = data.summary?.summaryText;
+    const summaryData = data.summary;
+    const summaryText = summaryData?.summaryText || summaryData?.summaryWithMetadata?.summary;
+    const references = summaryData?.summaryWithMetadata?.references || [];
+    const results = data.results || [];
+
+    // 1. Render & Format Agent Search Generative Summary
     if (summaryText) {
       aiAnswerEl.style.display = 'block';
+
+      // Format Paragraphs and Citation Badges
+      const formattedParagraphs = formatSummaryParagraphs(summaryText);
+
+      // Format References List
+      const formattedReferences = formatReferencesList(references, results);
+
       aiAnswerEl.innerHTML = `
         <div class="ai-header">
           <span class="ai-sparkle">✨</span>
-          <strong>AI Summary</strong>
+          <strong>Agent Search Generative Summary</strong>
         </div>
-        <p class="ai-text">${escapeHTML(summaryText)}</p>
+        <div class="ai-body">
+          ${formattedParagraphs}
+        </div>
+        ${formattedReferences}
       `;
+
+      bindReferenceHoverEvents(aiAnswerEl);
     } else {
       aiAnswerEl.style.display = 'none';
     }
 
-    // 2. Render Real Discovery Engine Search Results
-    const results = data.results || [];
+    // 2. Render Discovery Engine Search Results List
     if (results.length === 0) {
       resultsEl.innerHTML = `
         <div class="bmm-no-results">
-          <p>No results found for "<strong>${escapeHTML(query)}</strong>".</p>
+          <p>No results returned from Agent Search datastore for "<strong>${escapeHTML(query)}</strong>".</p>
         </div>
       `;
       return;
@@ -184,6 +199,97 @@
         </a>
       `;
     }).join('');
+  }
+
+  // Format AI Summary Text into Paragraph Blocks & Citation Badges
+  function formatSummaryParagraphs(text) {
+    if (!text) return '';
+
+    // Convert [1], [2], etc into clickable citation badges
+    let html = escapeHTML(text).replace(/\[(\d+)\]/g, (match, num) => {
+      return `<a class="bmm-cite-badge" data-ref="${num}" title="Jump to Reference ${num}">${num}</a>`;
+    });
+
+    // Split on double newlines if present
+    const rawParagraphs = html.split(/\n\n+/).filter(p => p.trim());
+    if (rawParagraphs.length > 1) {
+      return rawParagraphs.map(p => `<p class="ai-paragraph">${p.trim()}</p>`).join('');
+    }
+
+    // Split long text on sentence boundaries for clean paragraph spacing
+    const sentences = html.split(/(?<=[.!?])\s+(?=[A-Z])/);
+    if (sentences.length >= 3) {
+      let chunks = [];
+      for (let i = 0; i < sentences.length; i += 2) {
+        chunks.push(sentences.slice(i, i + 2).join(' '));
+      }
+      return chunks.map(chunk => `<p class="ai-paragraph">${chunk.trim()}</p>`).join('');
+    }
+
+    return `<p class="ai-paragraph">${html.trim()}</p>`;
+  }
+
+  // Format References List
+  function formatReferencesList(references, results) {
+    if (!references || references.length === 0) return '';
+
+    const refItems = references.map((ref, idx) => {
+      const num = idx + 1;
+      const docPath = ref.document || '';
+      
+      // Match reference document ID or name against results array to extract canonical link
+      const matched = results.find(r => {
+        const d = r.document || {};
+        return d.name === docPath || d.id === docPath.split('/').pop() || docPath.endsWith(d.id);
+      });
+
+      const struct = matched?.document?.derivedStructData || {};
+      const title = ref.title || struct.title || 'Referenced Article';
+      const link = struct.link || '#';
+
+      return `
+        <li id="bmm-ref-${num}" class="ref-item" data-ref-id="${num}">
+          <span class="ref-num">${num}</span>
+          <a href="${escapeHTML(link)}" class="ref-link">${escapeHTML(title)}</a>
+        </li>
+      `;
+    }).join('');
+
+    return `
+      <div class="bmm-summary-references">
+        <div class="ref-header">
+          <span>📚 Referenced Sources (${references.length})</span>
+        </div>
+        <ol class="ref-list">
+          ${refItems}
+        </ol>
+      </div>
+    `;
+  }
+
+  // Interactive Hover/Click Highlight between Citation Badge and Reference Item
+  function bindReferenceHoverEvents(container) {
+    container.querySelectorAll('.bmm-cite-badge').forEach(badge => {
+      const refNum = badge.getAttribute('data-ref');
+      const refItem = container.querySelector(`#bmm-ref-${refNum}`);
+
+      if (!refItem) return;
+
+      badge.addEventListener('mouseenter', () => {
+        refItem.classList.add('highlighted');
+      });
+
+      badge.addEventListener('mouseleave', () => {
+        refItem.classList.remove('highlighted');
+      });
+
+      badge.addEventListener('click', (e) => {
+        e.preventDefault();
+        refItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        refItem.classList.add('highlighted');
+        setTimeout(() => refItem.classList.remove('highlighted'), 2000);
+      });
+    });
   }
 
   function escapeHTML(str) {
