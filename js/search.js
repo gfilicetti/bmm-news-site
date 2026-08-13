@@ -1,12 +1,14 @@
 /**
  * BMM News - Custom Agent Search Widget & Modal (Option B)
- * Live Agent Search API Integration (discoveryengine.googleapis.com)
+ * Live Multi-Turn Conversational Agent Search API Integration
  * Data Store ID: bmm-site-1_1785864019095
  * Project ID: bmm-news-site
  */
 
 (function () {
   'use strict';
+
+  let currentSessionId = null;
 
   function createModalDOM() {
     if (document.getElementById('bmm-search-modal')) return;
@@ -25,7 +27,7 @@
             <span class="bmm-search-shortcut"><kbd>ESC</kbd> to exit</span>
           </div>
           <div id="bmm-search-body" class="bmm-search-body">
-            <div id="bmm-ai-answer" class="bmm-ai-answer" style="display:none;"></div>
+            <div id="bmm-chat-thread" class="bmm-chat-thread"></div>
             <div id="bmm-search-results" class="bmm-search-results">
               <div class="bmm-search-placeholder"></div>
             </div>
@@ -73,8 +75,11 @@
     input.addEventListener('input', (e) => {
       clearTimeout(debounceTimer);
       const query = e.target.value.trim();
+      // Fresh query resets session
+      currentSessionId = null;
+      document.getElementById('bmm-chat-thread').innerHTML = '';
       debounceTimer = setTimeout(() => {
-        performLiveAgentSearch(query);
+        performLiveAgentSearch(query, null);
       }, 300);
     });
   }
@@ -95,19 +100,19 @@
     document.body.style.overflow = '';
   }
 
-  // Live Agent Search API Call
-  async function performLiveAgentSearch(query) {
-    const aiAnswerEl = document.getElementById('bmm-ai-answer');
+  // Live Agent Search API Call (Supports Multi-Turn Sessions)
+  async function performLiveAgentSearch(query, sessionId = null) {
+    const chatThreadEl = document.getElementById('bmm-chat-thread');
     const resultsEl = document.getElementById('bmm-search-results');
 
     if (!query || query.length === 0) {
-      aiAnswerEl.style.display = 'none';
+      currentSessionId = null;
+      chatThreadEl.innerHTML = '';
       resultsEl.innerHTML = '<div class="bmm-search-placeholder"></div>';
       return;
     }
 
-    // Show Loading State
-    aiAnswerEl.style.display = 'none';
+    // Append loading indicator or turn placeholder
     resultsEl.innerHTML = `
       <div class="bmm-search-placeholder">
         <p>⏳ Searching...</p>
@@ -118,7 +123,7 @@
       const response = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query })
+        body: JSON.stringify({ query: query, sessionId: sessionId })
       });
 
       if (!response.ok) {
@@ -126,19 +131,23 @@
       }
 
       const data = await response.json();
-      renderApiResults(data, query);
+      if (data.sessionId) {
+        currentSessionId = data.sessionId;
+      }
+
+      renderApiResults(data, query, sessionId !== null);
     } catch (err) {
       console.error('Agent Search Live API Error:', err);
       resultsEl.innerHTML = `
         <div class="bmm-no-results">
-          <p>⚠️ Failed to reach Agent Search API (${escapeHTML(err.message)})</p>
+          <p>⚠️ Failed to reach Search API (${escapeHTML(err.message)})</p>
         </div>
       `;
     }
   }
 
-  function renderApiResults(data, query) {
-    const aiAnswerEl = document.getElementById('bmm-ai-answer');
+  function renderApiResults(data, query, isFollowUp) {
+    const chatThreadEl = document.getElementById('bmm-chat-thread');
     const resultsEl = document.getElementById('bmm-search-results');
 
     const summaryData = data.summary;
@@ -146,33 +155,59 @@
     const references = summaryData?.summaryWithMetadata?.references || [];
     const results = data.results || [];
 
-    // 1. Render & Format Agent Search Generative Summary
+    // Construct Turn DOM Block
+    const turnId = `turn-${Date.now()}`;
+    const userQueryHTML = `<div class="bmm-user-turn">💬 ${escapeHTML(query)}</div>`;
+    
+    let summaryHTML = '';
     if (summaryText) {
-      aiAnswerEl.style.display = 'block';
-
-      // Format Paragraphs and Citation Badges
       const formattedParagraphs = formatSummaryParagraphs(summaryText);
-
-      // Format References List
       const formattedReferences = formatReferencesList(references, results);
 
-      aiAnswerEl.innerHTML = `
-        <div class="ai-header">
-          <span class="ai-sparkle">✨</span>
-          <strong>AI Summary</strong>
+      summaryHTML = `
+        <div class="bmm-ai-answer">
+          <div class="ai-header">
+            <span class="ai-sparkle">✨</span>
+            <strong>AI Summary</strong>
+          </div>
+          <div class="ai-body">
+            ${formattedParagraphs}
+          </div>
+          ${formattedReferences}
         </div>
-        <div class="ai-body">
-          ${formattedParagraphs}
-        </div>
-        ${formattedReferences}
       `;
-
-      bindReferenceHoverEvents(aiAnswerEl);
-    } else {
-      aiAnswerEl.style.display = 'none';
     }
 
-    // 2. Render Discovery Engine Search Results List
+    // Follow-up Input Box
+    const followUpHTML = `
+      <div class="bmm-followup-box">
+        <input type="text" class="bmm-followup-input" placeholder="Ask a follow-up question..." autocomplete="off">
+        <button class="bmm-followup-btn">Send</button>
+      </div>
+    `;
+
+    const turnContainerHTML = `
+      <div id="${turnId}" class="bmm-chat-turn">
+        ${userQueryHTML}
+        ${summaryHTML}
+        ${followUpHTML}
+      </div>
+    `;
+
+    // Render Conversation Thread
+    if (!isFollowUp) {
+      chatThreadEl.innerHTML = turnContainerHTML;
+    } else {
+      // Remove old follow-up input box from previous turn before appending
+      chatThreadEl.querySelectorAll('.bmm-followup-box').forEach(el => el.remove());
+      chatThreadEl.insertAdjacentHTML('beforeend', turnContainerHTML);
+    }
+
+    const currentTurnEl = document.getElementById(turnId);
+    bindReferenceHoverEvents(currentTurnEl);
+    bindFollowUpEvents(currentTurnEl);
+
+    // Render Search Results List below thread
     if (results.length === 0) {
       resultsEl.innerHTML = `
         <div class="bmm-no-results">
@@ -199,6 +234,29 @@
         </a>
       `;
     }).join('');
+  }
+
+  // Bind Follow-up Submit Handler
+  function bindFollowUpEvents(turnEl) {
+    const input = turnEl.querySelector('.bmm-followup-input');
+    const btn = turnEl.querySelector('.bmm-followup-btn');
+
+    if (!input || !btn) return;
+
+    const handleFollowUp = () => {
+      const followUpText = input.value.trim();
+      if (followUpText && currentSessionId) {
+        performLiveAgentSearch(followUpText, currentSessionId);
+      }
+    };
+
+    btn.addEventListener('click', handleFollowUp);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleFollowUp();
+      }
+    });
   }
 
   // Format AI Summary Text into Paragraph Blocks & Citation Badges

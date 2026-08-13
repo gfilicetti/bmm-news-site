@@ -155,7 +155,7 @@ footer { background: var(--bmm-black); color: #888; padding: 40px 24px; margin-t
 }
 
 /* ==========================================================================
-   BMM AGENT SEARCH MODAL & WIDGET (OPTION B) - DARK GLASSMORPHISM DESIGN
+   BMM AGENT SEARCH MODAL & WIDGET - DARK GLASSMORPHISM DESIGN
    ========================================================================== */
 
 .bmm-search-modal {
@@ -312,13 +312,40 @@ footer { background: var(--bmm-black); color: #888; padding: 40px 24px; margin-t
   font-size: 14px;
 }
 
+/* Multi-turn Conversational Thread Styles */
+.bmm-chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.bmm-chat-turn {
+  display: flex;
+  flex-direction: column;
+}
+
+.bmm-user-turn {
+  align-self: flex-end;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px 16px 4px 16px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  max-width: 85%;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 /* AI Summary Card Formatting */
 .bmm-ai-answer {
   background: linear-gradient(135deg, rgba(204, 0, 0, 0.14), rgba(28, 28, 38, 0.85));
   border: 1px solid rgba(204, 0, 0, 0.35);
   border-radius: 10px;
   padding: 16px 18px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
@@ -453,6 +480,55 @@ footer { background: var(--bmm-black); color: #888; padding: 40px 24px; margin-t
 .bmm-summary-references .ref-link:hover {
   color: #ff8888;
   text-decoration: underline;
+}
+
+/* Follow-up Query Input Bar */
+.bmm-followup-box {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  background: #1e1e26;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  align-items: center;
+  transition: border-color 0.2s ease;
+}
+
+.bmm-followup-box:focus-within {
+  border-color: var(--bmm-red);
+  box-shadow: 0 0 12px rgba(204, 0, 0, 0.25);
+}
+
+.bmm-followup-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: var(--bmm-font);
+}
+
+.bmm-followup-input::placeholder {
+  color: #888898;
+}
+
+.bmm-followup-btn {
+  background: var(--bmm-red);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.bmm-followup-btn:hover {
+  background: #ff1a1a;
+  transform: translateY(-1px);
 }
 
 /* Results Grid */

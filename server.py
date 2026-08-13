@@ -6,7 +6,9 @@ app = Flask(__name__, static_folder=".", static_url_path="")
 # Use numeric GCP Project Number 159619652659 for Discovery Engine IAM compliance
 PROJECT_NUMBER = "159619652659"
 DATASTORE_ID = "bmm-site-1_1785864019095"
-SEARCH_API_URL = f"https://discoveryengine.googleapis.com/v1/projects/{PROJECT_NUMBER}/locations/global/collections/default_collection/dataStores/{DATASTORE_ID}/servingConfigs/default_search:search"
+BASE_DS_URL = f"https://discoveryengine.googleapis.com/v1/projects/{PROJECT_NUMBER}/locations/global/collections/default_collection/dataStores/{DATASTORE_ID}"
+SEARCH_API_URL = f"{BASE_DS_URL}/servingConfigs/default_search:search"
+SESSIONS_API_URL = f"{BASE_DS_URL}/sessions"
 
 def get_access_token():
     # 1. Try Cloud Run Metadata Server
@@ -44,6 +46,23 @@ def get_access_token():
 
     return None
 
+def create_discovery_session(token):
+    try:
+        req = urllib.request.Request(
+            SESSIONS_API_URL,
+            data=json.dumps({"userPseudoId": "bmm-guest"}).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            sess_data = json.loads(resp.read().decode("utf-8"))
+            return sess_data.get("name")
+    except Exception as e:
+        print("Error creating Discovery Engine session:", e)
+        return None
+
 @app.route("/")
 def serve_index():
     return send_from_directory(".", "index.html")
@@ -58,27 +77,42 @@ def serve_static(path):
 def api_search():
     data = request.get_json(silent=True) or {}
     query = data.get("query", "").strip()
+    session_id = data.get("sessionId")
 
     if not query:
-        return jsonify({"results": [], "summary": None}), 200
+        return jsonify({"results": [], "summary": None, "sessionId": None}), 200
 
     token = get_access_token()
     if not token:
         return jsonify({"error": "Failed to obtain GCP authentication token"}), 500
 
-    payload = {
-        "query": query,
-        "pageSize": 10,
-        "contentSearchSpec": {
-            "summarySpec": {
-                "summaryResultCount": 5,
-                "includeCitations": True
-            },
-            "snippetSpec": {
-                "maxSnippetCount": 1
+    # Ensure valid Discovery Engine session
+    if not session_id:
+        session_id = create_discovery_session(token)
+
+    # Build search payload
+    if session_id:
+        # Multi-turn conversational query in session
+        payload = {
+            "query": query,
+            "session": session_id,
+            "pageSize": 10
+        }
+    else:
+        # Initial single-turn query with summary spec
+        payload = {
+            "query": query,
+            "pageSize": 10,
+            "contentSearchSpec": {
+                "summarySpec": {
+                    "summaryResultCount": 5,
+                    "includeCitations": True
+                },
+                "snippetSpec": {
+                    "maxSnippetCount": 1
+                }
             }
         }
-    }
 
     req = urllib.request.Request(
         SEARCH_API_URL,
@@ -92,6 +126,7 @@ def api_search():
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             api_res = json.loads(resp.read().decode("utf-8"))
+            api_res["sessionId"] = session_id
             return jsonify(api_res), 200
     except urllib.error.HTTPError as e:
         err_body = e.read().decode("utf-8")
