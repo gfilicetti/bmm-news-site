@@ -381,7 +381,14 @@
 
       const struct = matched?.document?.derivedStructData || {};
       const title = ref.title || struct.title || 'Referenced Article';
-      const link = struct.link || '#';
+      let link = ref.link || ref.uri || struct.link || '#';
+      
+      if ((!link || link === '#') && docPath) {
+        const articleMatch = docPath.match(/article-\d+/);
+        if (articleMatch) {
+          link = `/articles/${articleMatch[0]}.html`;
+        }
+      }
 
       return `
         <li id="bmm-ref-${num}" class="ref-item" data-ref-id="${num}">

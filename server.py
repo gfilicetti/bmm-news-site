@@ -1,4 +1,4 @@
-import os, urllib.request, json, subprocess
+import os, urllib.request, json, subprocess, re
 from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__, static_folder=".", static_url_path="")
@@ -74,6 +74,44 @@ def serve_static(path):
         return send_from_directory(".", path)
     return send_from_directory(".", "index.html"), 404
 
+def ensure_inline_footnotes(answer_text, references):
+    if not answer_text or not references:
+        return answer_text
+
+    # If answer_text already contains inline footnotes like [1], [2], keep as is
+    if re.search(r'\[\d+\]', answer_text):
+        return answer_text
+
+    # Inject footnote badges [1], [2], etc. matching references
+    ref_count = len(references)
+    if ref_count == 1:
+        text_str = answer_text.strip()
+        if not text_str.endswith(" [1]"):
+            return text_str + " [1]"
+        return text_str
+    else:
+        sentences = re.split(r'(?<=[.!?])\s+', answer_text.strip())
+        for idx, ref in enumerate(references):
+            num = idx + 1
+            title = ref.get("title", "").lower()
+            words = [w for w in re.findall(r'\w+', title) if len(w) > 3 and w not in ["news", "article", "breakthrough", "bmm"]]
+            
+            matched = False
+            for s_idx, s in enumerate(sentences):
+                s_lower = s.lower()
+                if any(w in s_lower for w in words):
+                    if f"[{num}]" not in sentences[s_idx]:
+                        sentences[s_idx] += f" [{num}]"
+                    matched = True
+                    break
+            
+            if not matched:
+                s_target = min(idx, len(sentences) - 1)
+                if f"[{num}]" not in sentences[s_target]:
+                    sentences[s_target] += f" [{num}]"
+
+        return " ".join(sentences)
+
 @app.route("/api/search", methods=["POST"])
 def api_search():
     data = request.get_json(silent=True) or {}
@@ -118,15 +156,25 @@ def api_search():
                             doc_name = sr.get("document", "")
                             if uri and uri not in seen_uris:
                                 seen_uris.add(uri)
+                                link_path = uri
+                                if uri.startswith("http"):
+                                    from urllib.parse import urlparse
+                                    parsed = urlparse(uri)
+                                    if parsed.path:
+                                        link_path = parsed.path
                                 references.append({
                                     "title": title or "Referenced Article",
-                                    "document": doc_name
+                                    "document": doc_name,
+                                    "uri": uri,
+                                    "link": link_path
                                 })
+
+                formatted_answer_text = ensure_inline_footnotes(answer_text, references)
 
                 return jsonify({
                     "sessionId": session_id,
                     "summary": {
-                        "summaryText": answer_text,
+                        "summaryText": formatted_answer_text,
                         "summaryWithMetadata": {
                             "references": references
                         }
