@@ -112,6 +112,16 @@ def ensure_inline_footnotes(answer_text, references):
 
         return " ".join(sentences)
 
+NO_SUMMARY_FALLBACK = "Sorry, I can only provide summaries based on BMM content."
+
+def is_fallback_summary(text):
+    if not text:
+        return False
+    t_lower = text.lower()
+    return ("summary could not be generated" in t_lower or 
+            "here are some search results" in t_lower or 
+            "no results could be found" in t_lower)
+
 @app.route("/api/search", methods=["POST"])
 def api_search():
     data = request.get_json(silent=True) or {}
@@ -169,7 +179,11 @@ def api_search():
                                     "link": link_path
                                 })
 
-                formatted_answer_text = ensure_inline_footnotes(answer_text, references)
+                if is_fallback_summary(answer_text):
+                    formatted_answer_text = NO_SUMMARY_FALLBACK
+                    references = []
+                else:
+                    formatted_answer_text = ensure_inline_footnotes(answer_text, references)
 
                 return jsonify({
                     "sessionId": session_id,
@@ -216,6 +230,14 @@ def api_search():
             with urllib.request.urlopen(req, timeout=10) as resp:
                 api_res = json.loads(resp.read().decode("utf-8"))
                 api_res["sessionId"] = session_id
+                
+                if "summary" in api_res and isinstance(api_res["summary"], dict):
+                    s_text = api_res["summary"].get("summaryText", "")
+                    if is_fallback_summary(s_text):
+                        api_res["summary"]["summaryText"] = NO_SUMMARY_FALLBACK
+                        if "summaryWithMetadata" in api_res["summary"]:
+                            api_res["summary"]["summaryWithMetadata"]["references"] = []
+
                 return jsonify(api_res), 200
         except urllib.error.HTTPError as e:
             err_body = e.read().decode("utf-8")

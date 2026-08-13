@@ -160,10 +160,24 @@
     const chatThreadEl = document.getElementById('bmm-chat-thread');
     const resultsEl = document.getElementById('bmm-search-results');
 
+    const NO_SUMMARY_FALLBACK = "Sorry, I can only provide summaries based on BMM content.";
     const summaryData = data.summary;
-    const summaryText = summaryData?.summaryText || summaryData?.summaryWithMetadata?.summary;
-    const references = summaryData?.summaryWithMetadata?.references || [];
+    let summaryText = summaryData?.summaryText || summaryData?.summaryWithMetadata?.summary;
+    let references = summaryData?.summaryWithMetadata?.references || [];
     const results = data.results || [];
+
+    const isFallbackText = (text) => {
+      if (!text) return false;
+      const lower = text.toLowerCase();
+      return lower.includes("summary could not be generated") ||
+             lower.includes("here are some search results") ||
+             lower.includes("no results could be found");
+    };
+
+    if (isFallbackText(summaryText)) {
+      summaryText = NO_SUMMARY_FALLBACK;
+      references = [];
+    }
 
     // TURN 1 INITIAL SEARCH
     if (!isFollowUp) {
