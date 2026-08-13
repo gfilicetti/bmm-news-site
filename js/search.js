@@ -307,9 +307,6 @@
 
       return `
         <a href="${escapeHTML(link)}" class="bmm-result-card">
-          <div class="result-header">
-            <span class="result-category">Agent Search Match</span>
-          </div>
           <h4 class="result-title">${escapeHTML(title)}</h4>
           <p class="result-excerpt">${snippetText ? snippetText : 'Click to view story details.'}</p>
         </a>
