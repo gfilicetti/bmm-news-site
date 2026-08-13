@@ -112,7 +112,7 @@
       return;
     }
 
-    // Append loading indicator or turn placeholder
+    // Append loading indicator
     resultsEl.innerHTML = `
       <div class="bmm-search-placeholder">
         <p>⏳ Searching...</p>
@@ -138,6 +138,7 @@
       renderApiResults(data, query, sessionId !== null);
     } catch (err) {
       console.error('Agent Search Live API Error:', err);
+      chatThreadEl.innerHTML = '';
       resultsEl.innerHTML = `
         <div class="bmm-no-results">
           <p>⚠️ Failed to reach Search API (${escapeHTML(err.message)})</p>
@@ -155,9 +156,20 @@
     const references = summaryData?.summaryWithMetadata?.references || [];
     const results = data.results || [];
 
-    // Construct Turn DOM Block
+    // GUARD: If no search results returned, do NOT show conversational UI or follow-up box
+    if (results.length === 0) {
+      chatThreadEl.innerHTML = '';
+      resultsEl.innerHTML = `
+        <div class="bmm-no-results">
+          <p>No results found for "<strong>${escapeHTML(query)}</strong>".</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Construct Turn DOM Block for results > 0
     const turnId = `turn-${Date.now()}`;
-    const userQueryHTML = `<div class="bmm-user-turn">💬 ${escapeHTML(query)}</div>`;
+    const userQueryHTML = isFollowUp ? `<div class="bmm-user-turn">💬 ${escapeHTML(query)}</div>` : '';
     
     let summaryHTML = '';
     if (summaryText) {
@@ -178,7 +190,7 @@
       `;
     }
 
-    // Follow-up Input Box
+    // Follow-up Input Box (Only shown when results exist)
     const followUpHTML = `
       <div class="bmm-followup-box">
         <input type="text" class="bmm-followup-input" placeholder="Ask a follow-up question..." autocomplete="off">
@@ -204,19 +216,12 @@
     }
 
     const currentTurnEl = document.getElementById(turnId);
-    bindReferenceHoverEvents(currentTurnEl);
-    bindFollowUpEvents(currentTurnEl);
-
-    // Render Search Results List below thread
-    if (results.length === 0) {
-      resultsEl.innerHTML = `
-        <div class="bmm-no-results">
-          <p>No results found for "<strong>${escapeHTML(query)}</strong>".</p>
-        </div>
-      `;
-      return;
+    if (currentTurnEl) {
+      bindReferenceHoverEvents(currentTurnEl);
+      bindFollowUpEvents(currentTurnEl);
     }
 
+    // Render Search Results List
     resultsEl.innerHTML = results.map(item => {
       const struct = item.document?.derivedStructData || {};
       const title = struct.title || item.document?.name || 'Untitled Article';

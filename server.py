@@ -86,20 +86,16 @@ def api_search():
     if not token:
         return jsonify({"error": "Failed to obtain GCP authentication token"}), 500
 
-    # Ensure valid Discovery Engine session
-    if not session_id:
-        session_id = create_discovery_session(token)
-
-    # Build search payload
     if session_id:
-        # Multi-turn conversational query in session
+        # Multi-turn conversational follow-up in session
         payload = {
             "query": query,
             "session": session_id,
             "pageSize": 10
         }
     else:
-        # Initial single-turn query with summary spec
+        # Initial turn 1 search: request summarySpec (without session) to generate AI Summary
+        session_id = create_discovery_session(token)
         payload = {
             "query": query,
             "pageSize": 10,
