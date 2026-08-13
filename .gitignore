@@ -222,4 +222,8 @@ scripts/output/*
 !scripts/output/.gitkeep
 scripts/parameters.yaml
 
+# Session Context File
+session_context.md
+
+
 
