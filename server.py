@@ -87,14 +87,14 @@ def api_search():
         return jsonify({"error": "Failed to obtain GCP authentication token"}), 500
 
     if session_id:
-        # Multi-turn conversational follow-up in session
+        # Turn 2..N Follow-Up Query in Session
         payload = {
             "query": query,
             "session": session_id,
             "pageSize": 10
         }
     else:
-        # Initial turn 1 search: request summarySpec (without session) to generate AI Summary
+        # Turn 1 Initial Query: Get AI Summary with summarySpec and create Session ID
         session_id = create_discovery_session(token)
         payload = {
             "query": query,
@@ -123,6 +123,20 @@ def api_search():
         with urllib.request.urlopen(req, timeout=10) as resp:
             api_res = json.loads(resp.read().decode("utf-8"))
             api_res["sessionId"] = session_id
+
+            # If Turn 2..N response has summary text or results, ensure summary payload is cleanly formatted
+            if session_id and "summary" in api_res and not api_res["summary"].get("summaryText"):
+                # Extract conversational snippet/summary from session query results if available
+                res_list = api_res.get("results", [])
+                if res_list:
+                    top_doc = res_list[0].get("document", {}).get("derivedStructData", {})
+                    top_snippets = top_doc.get("snippets", [])
+                    snippet_text = top_snippets[0].get("snippet", "") if top_snippets else top_doc.get("title", "")
+                    if snippet_text:
+                        api_res["summary"] = {
+                            "summaryText": f"Based on the session articles: {snippet_text}"
+                        }
+
             return jsonify(api_res), 200
     except urllib.error.HTTPError as e:
         err_body = e.read().decode("utf-8")

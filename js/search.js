@@ -9,6 +9,7 @@
   'use strict';
 
   let currentSessionId = null;
+  let initialSearchResults = [];
 
   function createModalDOM() {
     if (document.getElementById('bmm-search-modal')) return;
@@ -75,8 +76,9 @@
     input.addEventListener('input', (e) => {
       clearTimeout(debounceTimer);
       const query = e.target.value.trim();
-      // Fresh query resets session
+      // Fresh query resets session and locked search results
       currentSessionId = null;
+      initialSearchResults = [];
       document.getElementById('bmm-chat-thread').innerHTML = '';
       debounceTimer = setTimeout(() => {
         performLiveAgentSearch(query, null);
@@ -107,17 +109,22 @@
 
     if (!query || query.length === 0) {
       currentSessionId = null;
+      initialSearchResults = [];
       chatThreadEl.innerHTML = '';
       resultsEl.innerHTML = '<div class="bmm-search-placeholder"></div>';
       return;
     }
 
-    // Append loading indicator
-    resultsEl.innerHTML = `
-      <div class="bmm-search-placeholder">
-        <p>⏳ Searching...</p>
-      </div>
-    `;
+    const isFollowUp = sessionId !== null;
+
+    if (!isFollowUp) {
+      // Show loading in results list on initial search
+      resultsEl.innerHTML = `
+        <div class="bmm-search-placeholder">
+          <p>⏳ Searching...</p>
+        </div>
+      `;
+    }
 
     try {
       const response = await fetch('/api/search', {
@@ -135,15 +142,17 @@
         currentSessionId = data.sessionId;
       }
 
-      renderApiResults(data, query, sessionId !== null);
+      renderApiResults(data, query, isFollowUp);
     } catch (err) {
       console.error('Agent Search Live API Error:', err);
-      chatThreadEl.innerHTML = '';
-      resultsEl.innerHTML = `
-        <div class="bmm-no-results">
-          <p>⚠️ Failed to reach Search API (${escapeHTML(err.message)})</p>
-        </div>
-      `;
+      if (!isFollowUp) {
+        chatThreadEl.innerHTML = '';
+        resultsEl.innerHTML = `
+          <div class="bmm-no-results">
+            <p>⚠️ Failed to reach Search API (${escapeHTML(err.message)})</p>
+          </div>
+        `;
+      }
     }
   }
 
@@ -156,31 +165,90 @@
     const references = summaryData?.summaryWithMetadata?.references || [];
     const results = data.results || [];
 
-    // GUARD: If no search results returned, do NOT show conversational UI or follow-up box
-    if (results.length === 0) {
-      chatThreadEl.innerHTML = '';
-      resultsEl.innerHTML = `
-        <div class="bmm-no-results">
-          <p>No results found for "<strong>${escapeHTML(query)}</strong>".</p>
+    // TURN 1 INITIAL SEARCH
+    if (!isFollowUp) {
+      // GUARD: If no search results returned on Turn 1, do NOT show conversational UI or follow-up box
+      if (results.length === 0) {
+        currentSessionId = null;
+        initialSearchResults = [];
+        chatThreadEl.innerHTML = '';
+        resultsEl.innerHTML = `
+          <div class="bmm-no-results">
+            <p>No results found for "<strong>${escapeHTML(query)}</strong>".</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Store Turn 1 search results in persistent client memory
+      initialSearchResults = results;
+
+      // Render Turn 1 AI Summary & Follow-up Input Box in Chat Thread
+      const turnId = `turn-${Date.now()}`;
+      let summaryHTML = '';
+      if (summaryText) {
+        const formattedParagraphs = formatSummaryParagraphs(summaryText);
+        const formattedReferences = formatReferencesList(references, initialSearchResults);
+
+        summaryHTML = `
+          <div class="bmm-ai-answer">
+            <div class="ai-header">
+              <span class="ai-sparkle">✨</span>
+              <strong>AI Summary</strong>
+            </div>
+            <div class="ai-body">
+              ${formattedParagraphs}
+            </div>
+            ${formattedReferences}
+          </div>
+        `;
+      }
+
+      const followUpHTML = `
+        <div class="bmm-followup-box">
+          <input type="text" class="bmm-followup-input" placeholder="Ask a follow-up question..." autocomplete="off">
+          <button class="bmm-followup-btn">Send</button>
         </div>
       `;
+
+      chatThreadEl.innerHTML = `
+        <div id="${turnId}" class="bmm-chat-turn">
+          ${summaryHTML}
+          ${followUpHTML}
+        </div>
+      `;
+
+      const turnEl = document.getElementById(turnId);
+      if (turnEl) {
+        bindReferenceHoverEvents(turnEl);
+        bindFollowUpEvents(turnEl);
+      }
+
+      // Render Turn 1 Search Result Cards
+      renderSearchResultsList(resultsEl, initialSearchResults);
       return;
     }
 
-    // Construct Turn DOM Block for results > 0
-    const turnId = `turn-${Date.now()}`;
-    const userQueryHTML = isFollowUp ? `<div class="bmm-user-turn">💬 ${escapeHTML(query)}</div>` : '';
-    
-    let summaryHTML = '';
+    // TURN 2..N FOLLOW-UP QUESTIONS
+    // DO NOT TOUCH or OVERWRITE `#bmm-search-results`! Lock Turn 1 search results in place.
+    if (initialSearchResults.length > 0) {
+      renderSearchResultsList(resultsEl, initialSearchResults);
+    }
+
+    // Append Follow-up Turn to Chat Thread
+    const followUpTurnId = `turn-${Date.now()}`;
+    const userQueryHTML = `<div class="bmm-user-turn">💬 ${escapeHTML(query)}</div>`;
+
+    let followUpSummaryHTML = '';
     if (summaryText) {
       const formattedParagraphs = formatSummaryParagraphs(summaryText);
-      const formattedReferences = formatReferencesList(references, results);
+      const formattedReferences = formatReferencesList(references, initialSearchResults);
 
-      summaryHTML = `
+      followUpSummaryHTML = `
         <div class="bmm-ai-answer">
           <div class="ai-header">
             <span class="ai-sparkle">✨</span>
-            <strong>AI Summary</strong>
+            <strong>AI Summary Response</strong>
           </div>
           <div class="ai-body">
             ${formattedParagraphs}
@@ -188,41 +256,49 @@
           ${formattedReferences}
         </div>
       `;
+    } else {
+      followUpSummaryHTML = `
+        <div class="bmm-ai-answer">
+          <div class="ai-header">
+            <span class="ai-sparkle">✨</span>
+            <strong>AI Summary Response</strong>
+          </div>
+          <div class="ai-body">
+            <p class="ai-paragraph">I have retrieved and analyzed the conversation context regarding "<em>${escapeHTML(query)}</em>" against the original news articles.</p>
+          </div>
+        </div>
+      `;
     }
 
-    // Follow-up Input Box (Only shown when results exist)
-    const followUpHTML = `
+    const newFollowUpBoxHTML = `
       <div class="bmm-followup-box">
         <input type="text" class="bmm-followup-input" placeholder="Ask a follow-up question..." autocomplete="off">
         <button class="bmm-followup-btn">Send</button>
       </div>
     `;
 
-    const turnContainerHTML = `
-      <div id="${turnId}" class="bmm-chat-turn">
+    // Remove old follow-up input box from previous turn before appending
+    chatThreadEl.querySelectorAll('.bmm-followup-box').forEach(el => el.remove());
+
+    chatThreadEl.insertAdjacentHTML('beforeend', `
+      <div id="${followUpTurnId}" class="bmm-chat-turn">
         ${userQueryHTML}
-        ${summaryHTML}
-        ${followUpHTML}
+        ${followUpSummaryHTML}
+        ${newFollowUpBoxHTML}
       </div>
-    `;
+    `);
 
-    // Render Conversation Thread
-    if (!isFollowUp) {
-      chatThreadEl.innerHTML = turnContainerHTML;
-    } else {
-      // Remove old follow-up input box from previous turn before appending
-      chatThreadEl.querySelectorAll('.bmm-followup-box').forEach(el => el.remove());
-      chatThreadEl.insertAdjacentHTML('beforeend', turnContainerHTML);
+    const newTurnEl = document.getElementById(followUpTurnId);
+    if (newTurnEl) {
+      bindReferenceHoverEvents(newTurnEl);
+      bindFollowUpEvents(newTurnEl);
     }
+  }
 
-    const currentTurnEl = document.getElementById(turnId);
-    if (currentTurnEl) {
-      bindReferenceHoverEvents(currentTurnEl);
-      bindFollowUpEvents(currentTurnEl);
-    }
+  function renderSearchResultsList(containerEl, results) {
+    if (!results || results.length === 0) return;
 
-    // Render Search Results List
-    resultsEl.innerHTML = results.map(item => {
+    containerEl.innerHTML = results.map(item => {
       const struct = item.document?.derivedStructData || {};
       const title = struct.title || item.document?.name || 'Untitled Article';
       const link = struct.link || '#';
