@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://bmm-news-site-159619652659.us-central1.run.app/articles/article-1.html</loc>
+    <video:video>
+      <video:thumbnail_loc>https://bmm-news-site-159619652659.us-central1.run.app/images/article-1.jpg</video:thumbnail_loc>
+      <video:title>Autonomous Quantum Compute Clusters Achieve Breakthrough in Climate Modeling</video:title>
+      <video:description>BMM Video Report: Researchers demonstrate localized climate forecasting powered by 10,000-qubit quantum processing arrays.</video:description>
+      <video:content_loc>https://bmm-news-site-159619652659.us-central1.run.app/videos/video-1.mp4</video:content_loc>
+      <video:publication_date>2026-07-30T00:00:00+00:00</video:publication_date>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://bmm-news-site-159619652659.us-central1.run.app/articles/article-10.html</loc>
+    <video:video>
+      <video:thumbnail_loc>https://bmm-news-site-159619652659.us-central1.run.app/images/article-10.jpg</video:thumbnail_loc>
+      <video:title>Deep-Space Array Detects Repeating Signals from Outer Rim</video:title>
+      <video:description>BMM Science Report: Radio astronomers detail periodic signals originating 1.2 billion light-years away.</video:description>
+      <video:content_loc>https://bmm-news-site-159619652659.us-central1.run.app/videos/video-10.mp4</video:content_loc>
+      <video:publication_date>2026-07-30T00:00:00+00:00</video:publication_date>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://bmm-news-site-159619652659.us-central1.run.app/articles/article-11.html</loc>
+    <video:video>
+      <video:thumbnail_loc>https://bmm-news-site-159619652659.us-central1.run.app/images/article-11.jpg</video:thumbnail_loc>
+      <video:title>Market Briefing: Tech Index Surges Following Q3 Earnings</video:title>
+      <video:description>BMM Financial Special: Wall Street analysts examine Q3 tech index rallies driven by enterprise AI infrastructure demand.</video:description>
+      <video:content_loc>https://bmm-news-site-159619652659.us-central1.run.app/videos/video-11.mp4</video:content_loc>
+      <video:publication_date>2026-07-30T00:00:00+00:00</video:publication_date>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://bmm-news-site-159619652659.us-central1.run.app/articles/article-17.html</loc>
+    <video:video>
+      <video:thumbnail_loc>https://bmm-news-site-159619652659.us-central1.run.app/images/article-17.jpg</video:thumbnail_loc>
+      <video:title>Bipartisan Coalition Introduces Landmark Autonomous AI Ethics Bill</video:title>
+      <video:description>BMM Capitol Coverage: Congressional sponsors discuss algorithmic auditing and safety overrides in newly introduced legislation.</video:description>
+      <video:content_loc>https://bmm-news-site-159619652659.us-central1.run.app/videos/video-17.mp4</video:content_loc>
+      <video:publication_date>2026-07-30T00:00:00+00:00</video:publication_date>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://bmm-news-site-159619652659.us-central1.run.app/articles/article-25.html</loc>
+    <video:video>
+      <video:thumbnail_loc>https://bmm-news-site-159619652659.us-central1.run.app/images/article-25.jpg</video:thumbnail_loc>
+      <video:title>Open-Source AI Foundation Models Outperform Proprietary Systems in Benchmark</video:title>
+      <video:description>BMM Tech Insight: Benchmark analysis of open-weights AI foundation models outperforming proprietary platforms.</video:description>
+      <video:content_loc>https://bmm-news-site-159619652659.us-central1.run.app/videos/video-25.mp4</video:content_loc>
+      <video:publication_date>2026-07-30T00:00:00+00:00</video:publication_date>
+    </video:video>
+  </url>
+</urlset>
