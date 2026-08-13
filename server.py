@@ -8,6 +8,7 @@ PROJECT_NUMBER = "159619652659"
 DATASTORE_ID = "bmm-site-1_1785864019095"
 BASE_DS_URL = f"https://discoveryengine.googleapis.com/v1/projects/{PROJECT_NUMBER}/locations/global/collections/default_collection/dataStores/{DATASTORE_ID}"
 SEARCH_API_URL = f"{BASE_DS_URL}/servingConfigs/default_search:search"
+ANSWER_API_URL = f"{BASE_DS_URL}/servingConfigs/default_search:answer"
 SESSIONS_API_URL = f"{BASE_DS_URL}/sessions"
 
 def get_access_token():
@@ -87,12 +88,58 @@ def api_search():
         return jsonify({"error": "Failed to obtain GCP authentication token"}), 500
 
     if session_id:
-        # Turn 2..N Follow-Up Query in Session
+        # Turn 2..N Follow-Up Query in Session using Discovery Engine Answer API
         payload = {
-            "query": query,
-            "session": session_id,
-            "pageSize": 10
+            "query": {"text": query},
+            "session": session_id
         }
+        req = urllib.request.Request(
+            ANSWER_API_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json"
+            }
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                api_res = json.loads(resp.read().decode("utf-8"))
+                answer_obj = api_res.get("answer", {})
+                answer_text = answer_obj.get("answerText", "")
+
+                references = []
+                seen_uris = set()
+                for step in answer_obj.get("steps", []):
+                    for action in step.get("actions", []):
+                        obs = action.get("observation", {})
+                        for sr in obs.get("searchResults", []):
+                            uri = sr.get("uri", "")
+                            title = sr.get("title", "")
+                            doc_name = sr.get("document", "")
+                            if uri and uri not in seen_uris:
+                                seen_uris.add(uri)
+                                references.append({
+                                    "title": title or "Referenced Article",
+                                    "document": doc_name
+                                })
+
+                return jsonify({
+                    "sessionId": session_id,
+                    "summary": {
+                        "summaryText": answer_text,
+                        "summaryWithMetadata": {
+                            "references": references
+                        }
+                    },
+                    "results": []
+                }), 200
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode("utf-8")
+            print(f"Discovery Engine Answer HTTP Error {e.code}: {err_body}")
+            return jsonify({"error": f"Agent Search Error {e.code}", "details": err_body}), e.code
+        except Exception as e:
+            print("Discovery Engine Request Error:", e)
+            return jsonify({"error": str(e)}), 500
     else:
         # Turn 1 Initial Query: Get AI Summary with summarySpec and create Session ID
         session_id = create_discovery_session(token)
@@ -109,42 +156,26 @@ def api_search():
                 }
             }
         }
-
-    req = urllib.request.Request(
-        SEARCH_API_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
-        }
-    )
-
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            api_res = json.loads(resp.read().decode("utf-8"))
-            api_res["sessionId"] = session_id
-
-            # If Turn 2..N response has summary text or results, ensure summary payload is cleanly formatted
-            if session_id and "summary" in api_res and not api_res["summary"].get("summaryText"):
-                # Extract conversational snippet/summary from session query results if available
-                res_list = api_res.get("results", [])
-                if res_list:
-                    top_doc = res_list[0].get("document", {}).get("derivedStructData", {})
-                    top_snippets = top_doc.get("snippets", [])
-                    snippet_text = top_snippets[0].get("snippet", "") if top_snippets else top_doc.get("title", "")
-                    if snippet_text:
-                        api_res["summary"] = {
-                            "summaryText": f"Based on the session articles: {snippet_text}"
-                        }
-
-            return jsonify(api_res), 200
-    except urllib.error.HTTPError as e:
-        err_body = e.read().decode("utf-8")
-        print(f"Discovery Engine HTTP Error {e.code}: {err_body}")
-        return jsonify({"error": f"Agent Search Error {e.code}", "details": err_body}), e.code
-    except Exception as e:
-        print("Discovery Engine Request Error:", e)
-        return jsonify({"error": str(e)}), 500
+        req = urllib.request.Request(
+            SEARCH_API_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json"
+            }
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                api_res = json.loads(resp.read().decode("utf-8"))
+                api_res["sessionId"] = session_id
+                return jsonify(api_res), 200
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode("utf-8")
+            print(f"Discovery Engine HTTP Error {e.code}: {err_body}")
+            return jsonify({"error": f"Agent Search Error {e.code}", "details": err_body}), e.code
+        except Exception as e:
+            print("Discovery Engine Request Error:", e)
+            return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
